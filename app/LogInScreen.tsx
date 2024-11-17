@@ -26,9 +26,24 @@ export default function LoginScreen({ navigation }: any) {
 
   const handleLogin = async () => {
     try {
+      // Hardcoded user credentials for Apple review
+      const hardcodedUser = {
+        username: 'Reviewer',
+        password: 'password123',
+      };
+  
+      // Check if the input matches the hardcoded user credentials
+      if (username === hardcodedUser.username && password === hardcodedUser.password) {
+        await AsyncStorage.setItem('isLoggedIn', 'true');
+        Alert.alert('Login Successful', 'Welcome to Task Master (Reviewer Account)!');
+        router.navigate('/'); // Navigate to Home Screen after successful login
+        return;
+      }
+  
+      // Check for existing stored user credentials (if any)
       const storedUserData = await AsyncStorage.getItem('userData');
       const parsedUserData = storedUserData ? JSON.parse(storedUserData) : null;
-
+  
       if (parsedUserData && parsedUserData.username === username && parsedUserData.password === password) {
         await AsyncStorage.setItem('isLoggedIn', 'true');
         Alert.alert('Login Successful', 'Welcome to Task Master!');
@@ -40,7 +55,7 @@ export default function LoginScreen({ navigation }: any) {
       console.error('Error logging in:', error);
     }
   };
-
+  
   return (
     <ImageBackground
     source={require('../assets/images/startbckg.png')}

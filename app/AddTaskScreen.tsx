@@ -191,6 +191,8 @@ today.setHours(0, 0, 0, 0);
           <Button title="Save Task" onPress={handleSaveTask} color="#FF6347" />
         </View>
 
+        <View style={{marginBottom:100}}></View>
+
         {/* Success Modal */}
         <Modal
           transparent={true}

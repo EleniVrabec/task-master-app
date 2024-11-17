@@ -13,6 +13,7 @@
       "backgroundColor": "#0D0D0D"
     },
     "ios": {
+      "bundleIdentifier": "com.elenivrabec.taskmaster",
       "supportsTablet": true
     },
     "android": {
