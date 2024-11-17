@@ -4,11 +4,11 @@
     "slug": "PIA13SlutProjectReactNative",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/TaskMaster2.gif",
+    "icon": "./assets/images/Task.gif",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/images/TaskMaster2.gif",
+      "image": "./assets/images/Task.gif",
       "resizeMode": "contain",
       "backgroundColor": "#0D0D0D"
     },

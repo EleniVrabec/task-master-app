@@ -30,7 +30,7 @@ export default function TabTwoScreen() {
         ),
       }}
     >
-          <Stack.Screen name="My profile" component={ProfileScreen} />
+          <Stack.Screen name="My profile" component={ProfileScreen}  />
           
         </Stack.Navigator>
      

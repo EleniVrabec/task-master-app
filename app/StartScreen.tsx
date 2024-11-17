@@ -69,6 +69,8 @@ useEffect(() => {
     setTasks([]);
     setAllTaskData([]);
     setFilteredTasks([]);
+    setShowDelete(false)
+    
   };
 
   // Filter tasks based on selected status and category
@@ -125,7 +127,8 @@ useEffect(() => {
     {/* Categories List with "All Categories" */}
     <View>
     
-    <Text style={styles.headingH2}>Your Categories</Text>
+   {/*  <Text style={styles.headingH2}>Your Categories</Text> */}
+   <View style={styles.categoryContainer}>
       <FlatList
         data={[{ id: "all", name: "All Categories" }, ...categories]}
         keyExtractor={(item) => item.id}
@@ -148,10 +151,10 @@ useEffect(() => {
         )}
        /*  contentContainerStyle={styles.flatListContent} */
       />
-  
+  </View>
       {/* Status Filters */}
       <Text style={styles.headingH2}>Filter by Status</Text>
-      <View></View>
+     
       <View style={styles.statusFilters}>
         <TouchableOpacity
           style={listType === "To Do" ? styles.shopFilterTabActive : styles.taskFilterTab}
@@ -175,36 +178,43 @@ useEffect(() => {
     </View>
   
     {/* Filtered Tasks List */}
-    <Text style={styles.headingH2}>Your Tasks</Text>
-    <FlatList
-      data={filteredTasks}
-      keyExtractor={(item) => item.id}
-      renderItem={({ item }) => (
-        <Pressable onPress={() => openModal(item)}>
-          <TaskItemComponent item={item} onDelete={handleDeleteTask} />
-        </Pressable>
-      )}
-      contentContainerStyle={styles.taskList} 
-    />
-
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.deleteButton} onPress={() => setShowDelete(true)}>
-          <Text style={styles.buttonText}>Delete All</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.createButton} onPress={() => navigation.navigate("AddTaskScreen")}>
-          <Text style={styles.buttonText}>Create Task</Text>
+<Text style={styles.headingH2}>Your Tasks</Text>
+<FlatList
+  data={filteredTasks}
+  keyExtractor={(item) => item.id}
+  renderItem={({ item }) => (
+    <Pressable style={{ marginLeft:20, marginRight:20 }} onPress={() => openModal(item)}>
+      <TaskItemComponent item={item} onDelete={handleDeleteTask} />
+    </Pressable>
+  )}
+  contentContainerStyle={styles.taskList}
+  ListFooterComponent={
+    filteredTasks.length > 0 ? ( // Only show if there are tasks
+      <View style={styles.deleteAllContainer}>
+        <TouchableOpacity onPress={() => setShowDelete(true)}>
+          <Text style={styles.deleteButtonText}>Delete All Tasks</Text>
         </TouchableOpacity>
       </View>
- 
-    {showDelete && (
-      <DeleteAllTasks   
-        message="Are you sure you want to delete all tasks?"
-        button1Click={() => setShowDelete(false)}
-        button1Text="Cancel"
-        button2Click={deleteAll}
-        button2text="Confirm"
-      />
-    )}
+    ) : null
+  }
+/>
+
+
+{/* Floating Add Task Button */}
+{/* <TouchableOpacity style={styles.createButton} onPress={() => navigation.navigate("AddTaskScreen")}>
+  <Ionicons name="add" size={32} color="white" />
+</TouchableOpacity>
+ */}
+{showDelete && (
+  <DeleteAllTasks   
+    message="Are you sure you want to delete all tasks?"
+    button1Click={() => setShowDelete(false)}
+    button1Text="Cancel"
+    button2Click={deleteAll}
+    button2text="Confirm"
+  />
+)}
+
   
     {/* Modal for updating task status */}
     {selectedTask && (
@@ -233,7 +243,7 @@ useEffect(() => {
 
 
           <View style={styles.modalBtn} >
-            <Button color={'white'} title="Close" onPress={closeModal} />
+            <Button color={'white'} title="Cancel" onPress={closeModal} />
           </View>
           </View>
         </View>
@@ -248,16 +258,21 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: '#0D0D0D',
     flex: 1,
-    padding:20
+  /*   padding:20 */
   },
   gradientBackground: {  
     borderRadius: 10,
   },
   headingH2:{
     color:'white',
-    fontSize:24,
-    fontWeight:'bold',
-    marginTop:30
+    fontSize:20,
+    fontWeight:'semibold',
+    
+   
+    paddingBottom:15,
+    paddingTop:20,
+    paddingLeft:20,
+    paddingRight:20
   },
   buttonModalContainer: {
     position:'absolute',
@@ -273,22 +288,22 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   deleteButton: {
-    margin:1,
-    width:'49%',
-    backgroundColor: 'red',
+    backgroundColor: 'transparent', // No background color
+    borderWidth: 0, // Remove border
     paddingVertical: 12,
     paddingHorizontal: 24,
-    borderRadius: 8,
-    borderColor:'red',
-    borderWidth: 1,
   },
+  
   createButton: {
-    margin:1,
-    width:'49%',
-    backgroundColor: '#F97B34',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
+    position: 'absolute', 
+    bottom: 20, 
+    right: 20, 
+    width: 70,
+    height: 70,
+    backgroundColor: '#FF6347',
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    borderRadius: 40, 
   },
   buttonText: {
     color: 'white',
@@ -296,26 +311,36 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
   },
- 
+  deleteAllContainer: {
+    alignItems: 'center', // Center the button
+    marginVertical: 20,   // Add space from other content
+  },
+  
+  deleteButtonText: {
+    color: 'red',
+    fontWeight: 'bold',
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  
   statusFilters: {
     width:'100%',
     flexDirection: "row",
     color:'white',
-    borderRadius: 8,
-    marginTop:15,
+    borderRadius: 0,
+    marginTop:0,
     borderWidth: 1,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    padding:5
+    padding:5,
     
   },
   statusText:{
      color:'white',
      fontSize:16, 
+    
   },
   taskFilterTab: {
-    
-   /*  backgroundColor: 'rgba(255, 255, 255, 0.1)', */
-    padding: 20,
+       
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
@@ -325,8 +350,8 @@ const styles = StyleSheet.create({
     
   },
   shopFilterTabActive: {
-    backgroundColor: "#DB5400",
-    padding: 20,
+    backgroundColor: "#FF6347",
+    padding: 15,
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
@@ -334,11 +359,17 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     
   },
+  categoryContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)', // Adjust color to your preference
+    paddingVertical: 0, // Add some vertical padding for spacing
+    marginBottom: 10, // Add margin to separate from other elements
+    marginTop: 20
+  },
   categoryItem: {
     color:'white',
-    fontWeight:'bold',
+    fontWeight:'semibold',
     fontSize:18,
-    padding: 30,
+    padding: 15,
     margin: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -350,10 +381,10 @@ const styles = StyleSheet.create({
   selectedCategory: {
     fontWeight:'bold',
     fontSize:18,
-    padding: 30,
+    padding: 15,
     margin: 4, 
     borderRadius: 8,
-    borderWidth: 1,
+   /*  borderWidth: 1, */
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
@@ -362,10 +393,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden', 
   },
   selectedText: {
-    color: '#DB5400', 
+    color: '#FF6347', 
   },
   taskList: {
-    paddingBottom: 20, 
+    paddingBottom: 40, 
   },
   modalContainer: { 
     flex:1,
@@ -386,21 +417,21 @@ const styles = StyleSheet.create({
 
   },
   modalBtn:{
-    margin:1,
-    width:'49%',
-    backgroundColor: '#F97B34',
-    paddingVertical: 7,
-    paddingHorizontal: 7,
+    margin:2,
+    width:'48%',
+    backgroundColor: '#FF6347',
+    paddingVertical: 5,
+    paddingHorizontal: 5,
     borderRadius: 8,
-    borderColor:'#F97B34',
+    borderColor:'#FF6347',
     borderWidth: 1,
   },
   modalDeleteBtn:{
-    margin:1,
-    width:'49%',
+    margin:2,
+    width:'48%',
     backgroundColor: 'red',
-    paddingVertical: 7,
-    paddingHorizontal: 7,
+    paddingVertical: 5,
+    paddingHorizontal: 5,
     borderRadius: 8,
     borderColor:'red',
     borderWidth: 1,

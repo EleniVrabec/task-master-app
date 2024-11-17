@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, FlatList, Text, View, StyleSheet, TouchableOpacity, Modal, Image } from "react-native";
+import { Alert, FlatList, Text, View, StyleSheet, TouchableOpacity, Modal, Image, ScrollView } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useIsFocused } from "@react-navigation/native";
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 import AddCategory from "@/components/AddCategory";
 
 import { CategoryItem } from "@/models/CategoryItem";
@@ -16,13 +17,14 @@ export default function ProfileScreen({ navigation }: any) {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false); // New modal state
   const isFocused = useIsFocused();
-  const [userData, setUserData] = useState<{ username: string, password: string } | null>(null);
+  const [userData, setUserData] = useState<{ username: string, password: string, usermail: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     navigation.setOptions({
       headerRight: () => (
         <TouchableOpacity onPress={handleLogout} style={styles.headerButton}>
-          <Ionicons name="log-out-outline" size={24} color="white" />
+          <Ionicons name="log-out-outline" size={24} color="#F5F5F5" />
         </TouchableOpacity>
       ),
     });
@@ -34,10 +36,11 @@ export default function ProfileScreen({ navigation }: any) {
       loadUserData();
     }
   }, [isFocused]);
-
+console.log("user data " + userData)
   const loadUserData = async () => {
     try {
       const storedUserData = await AsyncStorage.getItem('userData');
+      console.log("user data " + storedUserData )
       if (storedUserData) {
         setUserData(JSON.parse(storedUserData));
       } else {
@@ -91,8 +94,10 @@ export default function ProfileScreen({ navigation }: any) {
   async function deleteAllCategories() {
     await AsyncStorage.removeItem('categorylist');
     setCategories([]);
+    setShowDelete(false); 
 
     try {
+      
       const storedTasks = await AsyncStorage.getItem('tasklist');
       if (storedTasks) {
         const taskList = JSON.parse(storedTasks);
@@ -103,28 +108,37 @@ export default function ProfileScreen({ navigation }: any) {
           return task;
         });
         await AsyncStorage.setItem('tasklist', JSON.stringify(updatedTasks));
+      
+      
       }
     } catch (error) {
       console.error("Failed to update tasks after deleting categories", error);
     }
-    setShowDelete(false);
+     
+    loadCategories();
+    
   }
 
   return (
     <View style={styles.container}>
       {userData && (
-        <View style={styles.userInfo}>
+        <View style={styles.headerContainer}>
+          <View style={styles.avatarCircle}>
+            <Text style={styles.avatarText}>
+              {userData.username ? userData.username.charAt(0).toUpperCase() : ''}
+            </Text>
+          </View>
           <Text style={styles.userLabel}>Welcome, {userData.username}!</Text>
+          <Text style={styles.userEmail}>{userData.usermail}</Text>
         </View>
       )}
-      
-      <Text style={styles.subHeading}>Add New Category</Text>
-      <View style={styles.addCategoryContainer}>
-        <AddCategory onAddCategory={handleAddCategory} />
-      </View>
-
-      <Text style={styles.subHeading}>Your Categories</Text>
+  
       <FlatList
+        ListHeaderComponent={() => (
+          <>
+            <Text style={styles.subHeading}>Your Categories</Text>
+          </>
+        )}
         data={categories}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
@@ -133,76 +147,163 @@ export default function ProfileScreen({ navigation }: any) {
           </View>
         )}
         contentContainerStyle={styles.categoryList}
-      />
-
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.deleteButton} onPress={() => setShowDelete(true)}>
-          <Text style={styles.buttonText}>Delete All </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.accountButton} onPress={() => setShowDeleteAccountModal(true)}>
-          <Text style={styles.buttonText}>Delete Account</Text>
-        </TouchableOpacity>
-      </View>
-
-      {showDelete && (
-        <DeleteAllTasks
-          message="Are you sure you want to delete all categories?"
-          button1Click={() => setShowDelete(false)}
-          button1Text="Cancel"
-          button2Click={deleteAllCategories}
-          button2text="Confirm"
-        />
-      )}
-
-      {/* Success Modal */}
-      <Modal
-        transparent={true}
-        visible={showSuccessModal}
-        animationType="fade"
-        onRequestClose={() => setShowSuccessModal(false)}
-      >
-        
-        <View style={styles.modalBackground}>
-          <View style={styles.successModal}>
-            <Text style={styles.successText}>
-              Category Added Successfully!</Text>
-              <Image
-              source={require('../assets/images/success.gif')}
-              style={styles.successGif}
-            />
-            
-            
-          </View>
-        </View>
-      </Modal>
-
-      {/* Delete Account Confirmation Modal */}
-      <Modal
-        transparent={true}
-        visible={showDeleteAccountModal}
-        animationType="fade"
-        onRequestClose={() => setShowDeleteAccountModal(false)}
-      >
-        <View style={styles.modalBackground}>
-          <View style={styles.confirmModal}>
-            <Text style={styles.confirmText}>Are you sure you want to delete your account?</Text>
-            <View style={styles.modalButtonContainer}>
-              <TouchableOpacity style={styles.cancelButton} onPress={() => setShowDeleteAccountModal(false)}>
-                <Text style={styles.buttonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.confirmButton} onPress={confirmDeleteUser}>
-                <Text style={styles.buttonText}>Confirm</Text>
-              </TouchableOpacity>
+        ListFooterComponent={() => (
+          <>
+            <View style={styles.separator}></View>
+            <Text style={styles.subHeading}>Manage your categories</Text>
+            <View style={styles.addCategoryContainer}>
+              <AddCategory onAddCategory={handleAddCategory} />
             </View>
-          </View>
-        </View>
-      </Modal>
+  
+            <View style={styles.separator}></View>
+  
+            <View style={styles.buttonContainer}>
+              <Text style={styles.subHeading}>Delete All Categories</Text>
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => setShowDelete(true)}
+              >
+                <Ionicons
+                  name="trash-outline"
+                  size={20}
+                  color="#F5F5F5"
+                  style={{ marginRight: 8 }}
+                />
+                <Text style={styles.buttonText}>Delete</Text>
+              </TouchableOpacity>
+              <Text style={styles.subHeading}>Delete Your Account</Text>
+              <TouchableOpacity
+                style={styles.accountButton}
+                onPress={() => setShowDeleteAccountModal(true)}
+              >
+                <AntDesign
+                  name="deleteuser"
+                  size={20}
+                  color="#F5F5F5"
+                  style={{ marginRight: 8 }}
+                />
+                <Text style={styles.buttonText}>Delete</Text>
+              </TouchableOpacity>
+
+              {/* Navigation to Privacy Policy */}
+      <Text style={styles.subHeading}>Privacy Policy</Text>
+      <TouchableOpacity
+        onPress={() => navigation.navigate('PrivacyPolicy')}
+        style={styles.accountButton}
+      >
+         <Ionicons
+    name="information-circle-outline" // Example icon for Privacy Policy
+    size={20}
+    color="#F5F5F5"
+    style={{ marginRight: 8 }}
+  />
+        <Text style={styles.buttonText}>View Our Privacy Policy</Text>
+      </TouchableOpacity>
+            </View>
+  
+            {showDelete && (
+              <DeleteAllTasks
+                message="Are you sure you want to delete all categories?"
+                button1Click={() => setShowDelete(false)}
+                button1Text="Cancel"
+                button2Click={deleteAllCategories}
+                button2text="Confirm"
+              />
+            )}
+  
+            {/* Success Modal */}
+            <Modal
+              transparent={true}
+              visible={showSuccessModal}
+              animationType="fade"
+              onRequestClose={() => setShowSuccessModal(false)}
+            >
+              <View style={styles.modalBackground}>
+                <View style={styles.successModal}>
+                  <Text style={styles.successText}>
+                    Category Added Successfully!
+                  </Text>
+                  <Image
+                    source={require('../assets/images/success.gif')}
+                    style={styles.successGif}
+                  />
+                </View>
+              </View>
+            </Modal>
+  
+            {/* Delete Account Confirmation Modal */}
+            <Modal
+              transparent={true}
+              visible={showDeleteAccountModal}
+              animationType="fade"
+              onRequestClose={() => setShowDeleteAccountModal(false)}
+            >
+              <View style={styles.modalBackground}>
+                <View style={styles.confirmModal}>
+                  <Text style={styles.confirmText}>
+                    Are you sure you want to delete your account?
+                  </Text>
+                  <View style={styles.modalButtonContainer}>
+                    <TouchableOpacity
+                      style={styles.cancelButton}
+                      onPress={() => setShowDeleteAccountModal(false)}
+                    >
+                      <Text style={styles.buttonText}>Cancel</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.confirmButton}
+                      onPress={confirmDeleteUser}
+                    >
+                      <Text style={styles.buttonText}>Confirm</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            </Modal>
+          </>
+        )}
+      />
     </View>
   );
+  
 }
 
 const styles = StyleSheet.create({
+  separator:{
+    marginTop:10,
+    marginBottom:10,
+    borderBottomWidth: 1,
+    borderBottomColor: 'gray', // Optional for border effect
+  },
+  headerContainer: {
+    width: '100%',
+    padding: 15,
+    paddingTop: 40, // To account for devices with status bars
+    backgroundColor: 'transparent', // Adjust this to match your theme
+    alignItems: 'center', // Center text horizontally
+    justifyContent: 'center', // Center items vertically
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc', // Optional for border effect
+    marginBottom:10
+  },
+  avatarCircle: {
+    width: 100, // Diameter of the circle
+    height: 100,
+    borderRadius: 50, // Makes the view a circle
+    backgroundColor: '#fff', // Background color of the circle, can be customized
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10, // Adds some spacing below the avatar
+  },
+  avatarText: {
+    color: '#FF6347', // Text color, adjust for visibility
+    fontSize: 44,
+    fontWeight: 'bold',
+  },
+  userEmail: {
+    color: '#f0f0f0',
+    fontSize: 14,
+  },
   container: {
     flex: 1,
     backgroundColor: '#0D0D0D',
@@ -221,16 +322,17 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   userLabel: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    fontSize: 30,
+    color: '#FF6347',
+    fontWeight: 'semibold',
+    fontSize: 24,
   },
   subHeading: {
-    color: '#FF6347',
+   
+    color: '#F5F5F5',
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: 'semibold',
     marginTop: 20,
-    marginBottom: 10,
+    marginBottom: 15,
   },
   addCategoryContainer: {
     marginBottom: 20,
@@ -238,6 +340,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 8,
+    
   },
   categoryList: {
     paddingVertical: 10,
@@ -250,32 +353,40 @@ const styles = StyleSheet.create({
     marginVertical: 5,
   },
   categoryText: {
-    color: 'white',
+    color: '#F5F5F5',
     fontSize: 16,
   },
   buttonContainer: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     justifyContent: 'space-between',
-    marginTop: 20,
+
+    marginBottom:20
   },
   deleteButton: {
-    backgroundColor: '#FF6347',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
+    backgroundColor: '#1E1E1E',
+    flexDirection: 'row', // Row layout for icon + text
+    alignItems: 'center', // Center align icon and text vertically
+
+    paddingVertical: 15,
+    paddingHorizontal: 15,
     borderRadius: 8,
-    flex: 1,
-    marginRight: 10,
+    marginTop: 5,
+   
   },
   accountButton: {
-    backgroundColor: 'red',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
+    backgroundColor: '#1E1E1E',
+    flexDirection: 'row', // Row layout for icon + text
+    alignItems: 'center', // Center align icon and text vertically
+
+    paddingVertical: 15,
+    paddingHorizontal: 15,
     borderRadius: 8,
-    flex: 1,
-    marginLeft: 10,
+    marginTop: 5,
+
+   
   },
   buttonText: {
-    color: 'white',
+    color: '#F5F5F5',
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
@@ -295,7 +406,7 @@ const styles = StyleSheet.create({
   },
   successText: {
     fontSize: 18,
-    color: 'white',
+    color: '#F5F5F5',
     textAlign: 'center',
   },
   confirmModal: {
@@ -307,7 +418,7 @@ const styles = StyleSheet.create({
   },
   confirmText: {
     fontSize: 18,
-    color: 'white',
+    color: '#F5F5F5',
     marginBottom: 20,
     textAlign: 'center',
   },

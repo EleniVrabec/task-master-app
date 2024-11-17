@@ -4,6 +4,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { router } from 'expo-router'; 
 import { BlurView } from 'expo-blur';
+import { KeyboardAvoidingView, Platform } from 'react-native';
+
 
 export default function LoginScreen({ navigation }: any) {
   const [username, setUsername] = useState<string>('');
@@ -44,6 +46,11 @@ export default function LoginScreen({ navigation }: any) {
     source={require('../assets/images/startbckg.png')}
     style={styles.backgroundImage}
     >
+      <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'} // Adjust for different platforms
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20} // Optional, can fine-tune for iOS/Android
+    >
     <View style={styles.container}>
     <View style={styles.formContainer}>
       <Text style={styles.header}>Manage your daily tasks</Text>
@@ -77,6 +84,7 @@ export default function LoginScreen({ navigation }: any) {
       </TouchableOpacity>
     </View>
     </View>
+    </KeyboardAvoidingView>
     </ImageBackground>
   );
 }
@@ -98,7 +106,7 @@ const styles = StyleSheet.create({
   },
   header: {
     fontSize: 42,
-    marginBottom: 10,
+    marginBottom: 30,
     textAlign: 'left',
      color:'white',
      fontWeight:'bold'

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Button, TextInput, View, Text, Platform, StyleSheet, Modal, Image } from 'react-native';
+import { Button, TextInput, View, Text, Platform, StyleSheet, Modal, Image, ScrollView, FlatList, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { TaskItem } from '@/models/TaskItem';
@@ -7,7 +7,7 @@ import { Picker } from '@react-native-picker/picker';
 import { CategoryItem } from '@/models/CategoryItem';
 import { useIsFocused } from "@react-navigation/native";
 import { router } from 'expo-router';
-
+import DropDownPicker from 'react-native-dropdown-picker';
 
 export default function AddTaskScreen({ navigation }: any) {
   const [title, setTitle] = useState('');
@@ -16,38 +16,65 @@ export default function AddTaskScreen({ navigation }: any) {
   const [category, setCategory] = useState('');
   const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [date, setDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [endTime, setEndTime] = useState(new Date());
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const isFocused = useIsFocused();
 
-  useEffect(() => {
-    loadCategories(); // Load categories when the component mounts
-  }, []);
+  const [selectedCategory, setSelectedCategory] = useState<string>("All Categories");
+
+
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState(null);
+  const [items, setItems] = useState([
+    
+  ]);
+   // Use useEffect to fetch categories when the component mounts
+   useEffect(() => {
+    getCategoriesFromAsyncStorage();
+  }, [isFocused, categories]);
+
 
   useEffect(() => {
     if (isFocused) {
       loadCategories();
-     
     }
-  }, [isFocused]);
+  }, [isFocused, categories]);
+  useEffect(() => {
+    // Reset category if categories array becomes empty
+    if (categories.length === 0) {
+      setCategory('');
+    }
+  }, [categories]);
 
   const loadCategories = async () => {
     try {
       const storedCategories = await AsyncStorage.getItem('categorylist');
       if (storedCategories) {
         setCategories(JSON.parse(storedCategories));
+      } else {
+        setCategories([]); // Clear the state if no categories are found
       }
     } catch (error) {
       console.error('Failed to load categories', error);
     }
   };
 
+  // Function to retrieve categories from AsyncStorage
+  const getCategoriesFromAsyncStorage = async () => {
+    try {
+      const storedCategories = await AsyncStorage.getItem('categorylist');
+      if (storedCategories !== null) {
+        // Parse the categories if they are stored as a stringified array
+        const parsedCategories = JSON.parse(storedCategories);
+        // Assuming parsedCategories is an array of categories like [{label: 'Category1', value: 'category1'}, ...]
+        setItems(parsedCategories);
+      }
+    } catch (error) {
+      console.error('Failed to load categories from AsyncStorage:', error);
+    }
+  };
 
-
-  // Function to handle saving the task
   const handleSaveTask = async () => {
-    // Use TaskItem model to create a new task
     const newTask = new TaskItem(
       Date.now().toString(),
       title,
@@ -64,174 +91,182 @@ export default function AddTaskScreen({ navigation }: any) {
       const updatedTasks = [...currentTasks, newTask];
       console.log(updatedTasks);
       await AsyncStorage.setItem('tasklist', JSON.stringify(updatedTasks));
-     setTitle('');
-     setDescription('');
-     setShowSuccessModal(true);
+      setTitle('');
+      setDescription('');
+      setShowSuccessModal(true);
 
-     setTimeout(() => {
-      setShowSuccessModal(false);
-      router.replace('/');
-    }, 1500);
-
-      
-      
+      setTimeout(() => {
+        setShowSuccessModal(false);
+        router.replace('/');
+      }, 1500);
     } catch (error) {
       console.error('Failed to save task', error);
     }
   };
 
-  const showDatepicker = () => setShowDatePicker(true);
-
   const onDateChange = (event: any, selectedDate: Date | undefined) => {
     const currentDate = selectedDate || date;
-    setShowDatePicker(Platform.OS === 'ios');
     setDate(currentDate);
   };
 
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+
+
   return (
-    <View style={{ flex: 1, padding: 20, backgroundColor: '#0D0D0D'}}>
-      <Text style={{ fontSize: 24, color: 'white', textAlign: 'center', marginBottom: 20 }} >
-        Write your task
-      </Text>
+    <View style={{ flex: 1, backgroundColor: '#0D0D0D' }}>
+      <View style={styles.categoryContainer}>
 
-      <TextInput
-        placeholder="Title"
-        placeholderTextColor="lightgray"
-        value={title}
-        onChangeText={setTitle}
-        style={{ 
-          backgroundColor: 'rgba(255, 255, 255, 0.1)',
-          color: 'white',
-          padding: 15, 
-          marginBottom: 10,
-          borderRadius: 8,
-          borderWidth: 1,
-          borderColor: 'rgba(255, 255, 255, 0.3)',
-        }}
-      />
+     <FlatList
+        data={[{ id: "all", name: "All Categories" }, ...categories]}
+        keyExtractor={(item) => item.id}
+        horizontal
+        renderItem={({ item }) => (
+          <TouchableOpacity onPress={() => {
+            const selectedCat = item.name === "All Categories" ? "All Categories" : item.name;
+            setSelectedCategory(selectedCat);
+            if (selectedCat !== "All Categories") {
+              setCategory(selectedCat); // Set the category to be used when saving the task
+            }
+          }}>
+          {selectedCategory === item.name ? (
+           
+              <Text style={[styles.selectedCategory, styles.selectedText]}>
+                {item.name}
+              </Text>
 
-      <TextInput
-        placeholder="Description"
-        placeholderTextColor="lightgray"
-        value={description}
-        onChangeText={setDescription}
-        style={{ 
-          backgroundColor: 'rgba(255, 255, 255, 0.1)',
-          color: 'white',
-          padding: 15, 
-          marginBottom: 10,
-          borderRadius: 8,
-          borderWidth: 1,
-          borderColor: 'rgba(255, 255, 255, 0.3)',
-        }}
-      />
+          ) : (
+            <Text style={styles.categoryItem}>
+              {item.name}
+            </Text>
+          )}
+        </TouchableOpacity>
+        
+        )}
      
-      <View style={{ marginBottom: 15}}>
-         <Text style= {{ color: 'white', marginBottom: 5 }}>
-          Pick a date
-         </Text>
+      />
+       </View>
+    <ScrollView contentContainerStyle={{ flexGrow: 1 }} style={{ backgroundColor: '#0D0D0D' }}>
+      <View style={{ flex: 1, padding: 20, backgroundColor: '#0D0D0D' }}>
+        <Text style={{ fontSize: 20, color: '#F5F5F5', textAlign: 'left', marginBottom: 15 }}>
+          Write your task
+        </Text>
 
-        <Button onPress={showDatepicker} title="Select Date" color="#FF6347"/>
-        {showDatePicker && (
+        <TextInput
+          placeholder="Title"
+          placeholderTextColor="lightgray"
+          value={title}
+          onChangeText={setTitle}
+          style={styles.input}
+        />
+
+        <TextInput
+          placeholder="Description"
+          placeholderTextColor="lightgray"
+          value={description}
+          onChangeText={setDescription}
+          style={styles.input}
+        />
+
+<View>
+
+</View>
+        <View style={{ marginBottom: 15, marginTop: 25 }}>
+        <Text style={{ fontSize: 20, color: '#F5F5F5',  fontWeight: 'semibold', textAlign: 'left', marginBottom: 0 }}>
+          Choose a date 
+        </Text>
           <DateTimePicker
-           themeVariant="dark"
+            themeVariant="dark"
+            accentColor="#FF6347"
             value={date}
             mode="date"
-            display="default"
+            display="inline"
             onChange={onDateChange}
+            minimumDate={today}
           />
-        )}
-      </View>
-
-      <TextInput
-        placeholder="End Time (e.g., 08:00 AM)"
-        placeholderTextColor="lightgray"
-        value={endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-        onFocus={() => showDatepicker()}
-        style={{ 
-          backgroundColor: 'rgba(255, 255, 255, 0.1)',
-          color: 'white',
-          padding: 15,
-          marginTop: 10,
-          borderRadius: 8,
-          borderWidth: 1,
-          borderColor: 'rgba(255, 255, 255, 0.3)',
-         }}
-      />
-
-      <View  style={{ marginBottom: 5 }}>
-
-{/* Category Picker */}
-<Text style={{ color: 'white', marginBottom: 10, marginTop:15, fontSize:20 }}>
-  Custom List of Categories
-</Text>
-
-<Picker
-selectedValue={category}
-onValueChange={(itemValue) => setCategory(itemValue)}
-style={{ 
-  color: 'white',
-  backgroundColor: 'rgba(255, 255, 255, 0.1)',
-  borderRadius: 8,
-  }}
- 
-      itemStyle={styles.pickerItem}
->
-
-<Picker.Item color="white" label="Select a Category" value="" />
-{categories.map((cat) => (
-<Picker.Item key={cat.id} label={cat.name} value={cat.name} />
-))}
-</Picker>
-</View>
-<View style={styles.buttonContainer}>
-<Button title="Save Task" onPress={handleSaveTask} color="#FF6347" />
-</View>
-
-
-{/* Success Modal */}
-<Modal
-        transparent={true}
-        visible={showSuccessModal}
-        animationType="fade"
-        onRequestClose={() => setShowSuccessModal(false)}
-      >
-        <View style={styles.modalBackground}>
-          <View style={styles.successModal}>
-            <Text style={styles.successText}>Task Added Successfully!</Text>
-            <Image
-              source={require('../assets/images/success.gif')}
-              style={styles.successGif}
-            />
-          </View>
         </View>
-      </Modal>
 
+        <View style={styles.buttonContainer}>
+          <Button title="Save Task" onPress={handleSaveTask} color="#FF6347" />
+        </View>
 
-
-
-</View>
-    
+        {/* Success Modal */}
+        <Modal
+          transparent={true}
+          visible={showSuccessModal}
+          animationType="fade"
+          onRequestClose={() => setShowSuccessModal(false)}
+        >
+          <View style={styles.modalBackground}>
+            <View style={styles.successModal}>
+              <Text style={styles.successText}>Task Added Successfully!</Text>
+              <Image
+                source={require('../assets/images/success.gif')}
+                style={styles.successGif}
+              />
+            </View>
+          </View>
+        </Modal>
+      </View>
+    </ScrollView>
+    </View>
   );
 }
 
-
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#0D0D0D',
-    flex: 1,
-    padding:20
+  categoryContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)', // Adjust color to your preference
+    paddingVertical: 0, // Add some vertical padding for spacing
+    marginBottom: 10, // Add margin to separate from other elements
+    marginTop: 20
+  },
+  categoryItem: {
+    color:'white',
+    fontWeight:'semibold',
+    fontSize:18,
+    padding: 15,
+    margin: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 5, 
+    overflow: 'hidden', 
+  },
+  selectedCategory: {
+    fontWeight:'bold',
+    fontSize:18,
+    padding: 15,
+    margin: 4, 
+    borderRadius: 8,
+    /* borderWidth: 1, */
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 5, 
+    overflow: 'hidden', 
+  },
+  selectedText: {
+   /*  color: '#DB5400',  */
+   color:"#FF6347"
+  },
+  input: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    color: 'white',
+    padding: 15,
+    marginBottom: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   buttonContainer: {
-    position: 'absolute',
-    bottom: 20,
     flexDirection: 'row',
     justifyContent: 'center',
     width: '100%',
-   /*  paddingHorizontal: 20, */
   },
-  pickerItem: {   
-    color: 'white', // White color for item text
+  pickerItem: {
+    color: 'white',
   },
   modalBackground: {
     flex: 1,
@@ -255,5 +290,4 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
   },
-
 });

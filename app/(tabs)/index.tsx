@@ -15,6 +15,7 @@ import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import TabLayout from './_layout';
 import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 
 export default function HomeScreen() {
   const Stack = createNativeStackNavigator();
@@ -37,7 +38,7 @@ export default function HomeScreen() {
       }}
     >
       <Stack.Screen
-        name="StartScreen"
+        name="Home"
         component={StartScreen}
       />
     </Stack.Navigator>

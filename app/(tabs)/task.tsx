@@ -22,7 +22,7 @@ export default function Task() {
         ),
       }}
     >
-          <Stack.Screen name="Add Task Screen" component={AddTaskScreen} />
+          <Stack.Screen name="Add Task" component={AddTaskScreen} />
           
         </Stack.Navigator>
      

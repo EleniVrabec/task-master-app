@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { router } from 'expo-router'; 
 import { BlurView } from 'expo-blur';
+import { KeyboardAvoidingView, Platform } from 'react-native';
 
 export default function SignUpScreen({ navigation }: any) {
   const [usermail, setUserEmail] = useState<string>('');
@@ -33,6 +34,11 @@ export default function SignUpScreen({ navigation }: any) {
     <ImageBackground
     source={require('../assets/images/startbckg.png')}
     style={styles.backgroundImage}
+    >
+      <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'} // Adjust for different platforms
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20} // Optional, can fine-tune for iOS/Android
     >
     <View style={styles.container}>
       
@@ -72,6 +78,7 @@ export default function SignUpScreen({ navigation }: any) {
       <Button color="#FF6347" title="Sign Up" onPress={handleSignUp} />
     </View>
     </View>
+    </KeyboardAvoidingView>
     </ImageBackground>
   );
 }

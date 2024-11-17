@@ -35,7 +35,7 @@ export default function AddCategory({onAddCategory} : CategoryProps){
             
             />
 
-        <Button title="Add Category" onPress={handleAddCategory} />
+        <Button title="Add Category" color={"#FF6347"} onPress={handleAddCategory} />
 
         </View>
 

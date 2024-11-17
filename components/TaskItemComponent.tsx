@@ -1,127 +1,107 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { LinearGradient } from 'expo-linear-gradient';
-
-import { TaskItem } from "@/models/TaskItem";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import { TaskItem } from "@/models/TaskItem";
 
 interface TaskItemComponentProps {
   item: TaskItem;
   onDelete: (id: string) => void; 
 }
 
- const TaskItemComponent = ({ item, onDelete } : TaskItemComponentProps) => {
- 
-
+const TaskItemComponent = ({ item, onDelete } : TaskItemComponentProps) => {
   return (
-    <LinearGradient
-      /* colors={['#FF7E5F', '#FD3A69']}  */
-      colors={['rgba(219, 84, 0, 0.7)', 'rgba(219, 84, 0, 0.2)', 'rgba(13, 13, 13, 0.1)', '#0D0D0D']}
-          start={{ x: 0, y: 0. }}  // Starts from the top-left corner
-          end={{ x: 0.9, y: 1.9 }} 
-           
-      style={styles.gradientBackground}
-    >
-    {/* Delete Icon */}
-    <TouchableOpacity style={styles.deleteIcon} onPress={() => onDelete(item.id)}>
-        <Ionicons name="trash-outline" size={24} color="#FFFFFF" />
+    <View style={styles.card}>
+      <TouchableOpacity style={styles.deleteIcon} onPress={() => onDelete(item.id)}>
+        <Ionicons name="trash-outline" size={20} color="#FFFFFF" />
       </TouchableOpacity>
 
-    <View style={styles.row}>
-        <Ionicons name="document-text-outline" size={24} color="#FFFFFF" />
+      <View style={styles.row}>
+        <View style={styles.iconBackground}>
+          <Ionicons name="document-text-outline" size={20} color="#FFFFFF" />
+        </View>
         <Text style={styles.heading}>{item.title}</Text>
       </View>
 
       <View style={styles.row}>
-        <Ionicons name="information-circle-outline" size={20} color="#DDDDDD" />
+        <View style={styles.iconBackground}>
+          <Ionicons name="information-circle-outline" size={18} color="#FFFFFF" />
+        </View>
         <Text style={styles.description}>{item.description}</Text>
       </View>
 
       {item.category && (
         <View style={styles.row}>
-          <Ionicons name="pricetag-outline" size={20} color="#AAAAAA" />
+          <View style={styles.iconBackground}>
+            <Ionicons name="pricetag-outline" size={18} color="#FFFFFF" />
+          </View>
           <Text style={styles.category}>Category: {item.category}</Text>
         </View>
       )}
 
       <View style={styles.row}>
-        <Ionicons name="calendar-outline" size={20} color="#FFFFFF" />
+        <View style={styles.iconBackground}>
+          <Ionicons name="calendar-outline" size={18} color="#FFFFFF" />
+        </View>
         <Text style={styles.date}>Due on: {new Date(item.date).toLocaleDateString()}</Text>
       </View>
-
-      {/* Uncomment if endTime is needed
-      {item.endTime && (
-        <View style={styles.row}>
-          <Ionicons name="time-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.endTime}>End Time: {new Date(item.endTime).toLocaleTimeString()}</Text>
-        </View>
-      )} */}
-
-      {/* <View style={styles.row}>
-      <Ionicons name="alert-circle-outline" size={20} color='#FFFFFF' style={styles.icon} />
-        <Text style={styles.status}>Current Status: {item.status}</Text>
-
-      </View> */}
-    </LinearGradient>
+    </View>
   );
 };
 
-export default TaskItemComponent
+export default TaskItemComponent;
 
 const styles = StyleSheet.create({
-  gradientBackground: {
-    marginVertical: 20,
-    padding: 20,
-    borderRadius: 10,
+  card: {
+    marginVertical: 10,
+    padding: 15,
+    borderRadius: 12,
+    backgroundColor: '#1E1E1E', // Solid background color for card
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 5,
+    borderColor: 'rgba(255, 99, 71, 0.5)', // Optional border for accent color
+    borderWidth: 1,
   },
   deleteIcon: {
     position: 'absolute',
     top: 10,
     right: 10,
-    /* backgroundColor: 'rgba(255, 0, 0, 0.7)', */
+   /*  backgroundColor: '#FF6347', */
     borderRadius: 20,
-    padding: 8,
+    padding: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 8,
   },
-  icon: {
+  iconBackground: {
+   /*  backgroundColor: '#FF6347', */
+    padding: 4,
+    borderRadius: 8,
     marginRight: 8,
-    alignSelf: 'center',  // Ensure icon is vertically centered
   },
   heading: {
-    marginLeft:10,
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#FFFFFF',
-    paddingVertical: 4,  // Adjusts text baseline alignment
+    flexShrink: 1,
   },
   description: {
-    marginLeft:10,
-    fontSize: 16,
+    fontSize: 14,
     color: '#DDDDDD',
-    paddingVertical: 4,  // Adjusts text baseline alignment
+    flexShrink: 1,
   },
   category: {
-    marginLeft:10,
     fontSize: 14,
-   /*  fontStyle: 'italic', */
     color: '#DDDDDD',
-    paddingVertical: 4,
   },
   date: {
-    marginLeft:10,
     fontSize: 14,
     color: '#DDDDDD',
-    paddingVertical: 4,
-  },
-  status: {
-    marginLeft:10,
-    fontSize: 14,
-    color: '#DDDDDD',
-   /*  fontWeight: 'bold', */
-    paddingVertical: 4,
   },
 });
