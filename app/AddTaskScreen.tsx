@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Button, TextInput, View, Text, Platform, StyleSheet, Modal, Image, ScrollView, FlatList, TouchableOpacity } from 'react-native';
+import { Button, TextInput, View, Text, Platform, StyleSheet, Modal, Image, ScrollView, FlatList, TouchableOpacity, KeyboardAvoidingView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { TaskItem } from '@/models/TaskItem';
@@ -146,6 +146,7 @@ today.setHours(0, 0, 0, 0);
      
       />
        </View>
+       <KeyboardAvoidingView>
     <ScrollView contentContainerStyle={{ flexGrow: 1 }} style={{ backgroundColor: '#0D0D0D' }}>
       <View style={{ flex: 1, padding: 20, backgroundColor: '#0D0D0D' }}>
         <Text style={{ fontSize: 20, color: '#F5F5F5', textAlign: 'left', marginBottom: 15 }}>
@@ -209,6 +210,7 @@ today.setHours(0, 0, 0, 0);
         </Modal>
       </View>
     </ScrollView>
+    </KeyboardAvoidingView>
     </View>
   );
 }
