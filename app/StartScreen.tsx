@@ -413,6 +413,8 @@ const styles = StyleSheet.create({
     marginTop:0,
     fontSize:32,
     color:'white',
+    padding:20,
+    textAlign:"center"
   
 
   },
